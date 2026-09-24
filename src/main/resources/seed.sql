@@ -1,4 +1,4 @@
-INSERT OR IGNORE INTO users (id, username, password_hash, role, display_name)
+INSERT OR IGNORE INTO users (id, username, password_hash, role, full_name)
 VALUES
     (1, 'player.demo', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'PLAYER', 'Demo Player'),
     (2, 'coach.bob', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'ADMIN', 'Bob Kim'),
