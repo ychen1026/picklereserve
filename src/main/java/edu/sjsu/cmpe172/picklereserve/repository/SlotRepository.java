@@ -20,7 +20,7 @@ public class SlotRepository {
     private static final String SELECT_COLUMNS = """
             SELECT slot.id AS slot_id,
                    provider.id AS provider_id,
-                   provider_user.display_name AS provider_name,
+                   provider_user.full_name AS provider_name,
                    service.id AS service_id,
                    service.name AS service_name,
                    service.duration_minutes,
