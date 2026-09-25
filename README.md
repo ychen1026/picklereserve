@@ -70,3 +70,5 @@ Returns available slots as a paginated DTO. Optional query parameters:
 
 `schema.sql` runs on every startup using `CREATE TABLE IF NOT EXISTS`; `seed.sql` uses `INSERT OR IGNORE`, so application restarts preserve existing data. `DatabaseConfig` enables SQLite foreign keys on every connection, a busy timeout, and WAL journal mode. All SQL is hand-written; the project contains no ORM, JPA, Hibernate, or Spring Data repository.
 
+## Code Walkthrough
+[Milestone 1 Code Walkthrough] (https://drive.google.com/file/d/1Y2-yKbf_UhXS4FvupyvaxS4RJLb5fqzu/view?usp=sharing)
