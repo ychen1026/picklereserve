@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS availability_slots (
     start_time TEXT NOT NULL,
     end_time TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'OPEN' CHECK (status IN ('OPEN', 'REMOVED')),
+    version INTEGER NOT NULL DEFAULT 0 CHECK (version >= 0),
     CHECK (end_time > start_time),
     UNIQUE (provider_id, start_time),
     FOREIGN KEY (provider_id) REFERENCES providers(id) ON DELETE RESTRICT,

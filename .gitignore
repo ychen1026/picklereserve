@@ -7,3 +7,11 @@ target/
 *.iml
 .DS_Store
 *-cookies.txt
+*.db-journal
+*.log
+logs/
+.classpath
+.project
+.settings/
+Thumbs.db
+Desktop.ini
