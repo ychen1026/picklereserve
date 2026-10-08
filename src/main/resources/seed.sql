@@ -1,8 +1,9 @@
 INSERT OR IGNORE INTO users (id, username, password_hash, role, full_name)
 VALUES
-    (1, 'player.demo', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'PLAYER', 'Demo Player'),
-    (2, 'coach.bob', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'ADMIN', 'Bob Kim'),
-    (3, 'coach.tanner', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'ADMIN', 'Tanner Lee');
+    (1, 'player.demo', '$2y$10$NmUiqTG0XbEynUrB.6tijump9RDyrt/DRbVKLRAaOb5TEF4Mh7uJq', 'PLAYER', 'Demo Player'),
+    (2, 'coach.bob', '$2y$10$NmUiqTG0XbEynUrB.6tijump9RDyrt/DRbVKLRAaOb5TEF4Mh7uJq', 'ADMIN', 'Bob Kim'),
+    (3, 'coach.tanner', '$2y$10$NmUiqTG0XbEynUrB.6tijump9RDyrt/DRbVKLRAaOb5TEF4Mh7uJq', 'ADMIN', 'Tanner Lee'),
+    (4, 'player.two', '$2y$10$NmUiqTG0XbEynUrB.6tijump9RDyrt/DRbVKLRAaOb5TEF4Mh7uJq', 'PLAYER', 'Second Player');
 
 INSERT OR IGNORE INTO providers (id, user_id, bio)
 VALUES
