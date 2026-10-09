@@ -31,7 +31,7 @@ class PickleReserveIntegrationTest {
 
     @Test
     void homeReadsSummaryAndSlotsFromSQLite() throws Exception {
-        mockMvc.perform(get("/"))
+        mockMvc.perform(get("/api/home"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.application").value("PickleReserve"))
                 .andExpect(jsonPath("$.providerCount").value(2))
@@ -42,7 +42,7 @@ class PickleReserveIntegrationTest {
 
     @Test
     void slotsFiltersAndPaginatesUsingSql() throws Exception {
-        mockMvc.perform(get("/slots")
+        mockMvc.perform(get("/api/slots")
                         .param("providerId", "1")
                         .param("date", "2026-09-26")
                         .param("page", "0")
@@ -56,12 +56,12 @@ class PickleReserveIntegrationTest {
 
     @Test
     void invalidPaginationReturnsStableBadRequestPayload() throws Exception {
-        mockMvc.perform(get("/slots").param("size", "0"))
+        mockMvc.perform(get("/api/slots").param("size", "0"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.error").value("Bad Request"))
                 .andExpect(jsonPath("$.message").value("size must be between 1 and 100"))
-                .andExpect(jsonPath("$.path").value("/slots"));
+                .andExpect(jsonPath("$.path").value("/api/slots"));
     }
 
     @Test

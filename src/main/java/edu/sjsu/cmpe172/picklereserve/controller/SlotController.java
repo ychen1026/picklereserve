@@ -19,7 +19,7 @@ public class SlotController {
         this.slotService = slotService;
     }
 
-    @GetMapping("/slots")
+    @GetMapping("/api/slots")
     public PageResponse<SlotResponse> availableSlots(
             @RequestParam(required = false) Long providerId,
             @RequestParam(required = false) Long serviceId,

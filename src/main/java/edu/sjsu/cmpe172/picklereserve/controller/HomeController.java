@@ -14,7 +14,7 @@ public class HomeController {
         this.homeService = homeService;
     }
 
-    @GetMapping("/")
+    @GetMapping("/api/home")
     public HomeResponse home() {
         return homeService.getHome();
     }
