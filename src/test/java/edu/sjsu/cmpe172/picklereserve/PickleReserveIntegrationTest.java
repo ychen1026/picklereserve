@@ -44,7 +44,7 @@ class PickleReserveIntegrationTest {
     void slotsFiltersAndPaginatesUsingSql() throws Exception {
         mockMvc.perform(get("/api/slots")
                         .param("providerId", "1")
-                        .param("date", "2026-09-26")
+                        .param("date", "2026-10-15")
                         .param("page", "0")
                         .param("size", "1"))
                 .andExpect(status().isOk())
