@@ -461,3 +461,4 @@ The Compose file intentionally runs one application container because SQLite is 
 
 - [Milestone 1 Code Walkthrough](https://drive.google.com/file/d/1Y2-yKbf_UhXS4FvupyvaxS4RJLb5fqzu/view?usp=sharing)
 - [Milestone 2 Code Walkthrough](https://drive.google.com/file/d/1jkBewytTw-SWNfrBJBJ4uk2ip1qgbB_o/view?usp=sharing)
+- [Milestone 3 Code Walkthrough](https://drive.google.com/file/d/16Q5Al16HgcAjo2p-4_qSfldPJHj-y6IJ/view?usp=sharing)
