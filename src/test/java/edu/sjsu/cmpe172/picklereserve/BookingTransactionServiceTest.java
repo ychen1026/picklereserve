@@ -4,10 +4,13 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import java.util.Optional;
 import edu.sjsu.cmpe172.picklereserve.error.ConflictException;
+import edu.sjsu.cmpe172.picklereserve.integration.AppointmentNotificationEvent;
+import edu.sjsu.cmpe172.picklereserve.integration.NotificationType;
 import edu.sjsu.cmpe172.picklereserve.model.BookableSlot;
 import edu.sjsu.cmpe172.picklereserve.repository.BookingRepository;
 import edu.sjsu.cmpe172.picklereserve.service.BookingTransactionService;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.context.ApplicationEventPublisher;
 
 class BookingTransactionServiceTest {
@@ -18,5 +21,12 @@ class BookingTransactionServiceTest {
     @Test void optimisticVersionFailureBecomesConflict(){
         BookingRepository repo=mock(BookingRepository.class); when(repo.findSlot(1)).thenReturn(Optional.of(new BookableSlot(1,1,1,"OPEN",3))); when(repo.claimVersion(1,3)).thenReturn(0);
         assertThatThrownBy(()->new BookingTransactionService(repo,mock(ApplicationEventPublisher.class)).bookOnce(1,1,1)).isInstanceOf(ConflictException.class);
+    }
+    @Test void successfulBookingPublishesConfirmationEvent(){
+        BookingRepository repo=mock(BookingRepository.class); ApplicationEventPublisher events=mock(ApplicationEventPublisher.class);
+        when(repo.findSlot(1)).thenReturn(Optional.of(new BookableSlot(1,1,1,"OPEN",0))); when(repo.claimVersion(1,0)).thenReturn(1); when(repo.insertAppointment(1,1,1)).thenReturn(12L);
+        assertThat(new BookingTransactionService(repo,events).bookOnce(1,1,1)).isEqualTo(12L);
+        ArgumentCaptor<Object> event=ArgumentCaptor.forClass(Object.class); verify(events).publishEvent(event.capture());
+        assertThat(event.getValue()).isEqualTo(new AppointmentNotificationEvent(12,NotificationType.BOOKING_CONFIRMED));
     }
 }

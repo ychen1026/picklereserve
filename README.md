@@ -1,6 +1,6 @@
 # PickleReserve
 
-PickleReserve is a pickleball court and coaching reservation system for SJSU CMPE 172. Milestone 1 delivered the requirements/design package and a running layered Spring Boot skeleton backed by SQLite and hand-written JDBC SQL. Milestone 2 extends that foundation with a Thymeleaf web interface, session authentication, role-based access control, booking and cancellation, provider availability management, explicit transactions, and concurrency protection.
+PickleReserve is a pickleball court and coaching reservation system for SJSU CMPE 172. Milestone 1 delivered the layered Spring Boot and SQLite skeleton. Milestone 2 added the complete booking workflow, authentication, role-based access, explicit transactions, and concurrency protection. Milestone 3 adds a resilient HTTP notification boundary, post-commit asynchronous delivery, logging, database health, Micrometer metrics, Docker packaging, and continuous integration.
 
 ## Milestone 1 scope
 
@@ -36,6 +36,20 @@ Milestone 2 implements the core booking workflow and concurrency controls requir
 - Unit, integration, authorization, transaction, and two-thread concurrency tests
 
 The course's Customer role is represented by `PLAYER`. The course's Provider role is represented by an `ADMIN` user connected to a row in the `providers` table.
+
+## Milestone 3 scope
+
+- Coarse-grained `NotificationRequest` with recipient, type, and complete message
+- Mock external notification controller at `POST /mock-notifications`
+- Stable `Idempotency-Key` header and duplicate suppression in the mock service
+- HTTP Gateway with connect/read timeouts, three attempts, incremental backoff, and fallback
+- Asynchronous `AFTER_COMMIT` notifications for successful bookings and cancellations
+- Structured INFO, WARN, and ERROR operational logging
+- `GET /health` with a live `SELECT 1` SQLite connectivity check
+- Micrometer counters exposed through Spring Boot Actuator
+- Java 21 multi-stage Docker image and persistent SQLite Compose volume
+- GitHub Actions workflow that runs `mvn clean verify` on every push and pull request
+- Integration test proving the booking remains committed while the notification service is down
 
 ## Prerequisites
 
@@ -92,6 +106,14 @@ The Milestone 2 test suite covers:
 - SQLite's unique appointment-slot constraint
 - Two simultaneous booking attempts for the same slot, with exactly one successful booking
 
+Milestone 3 adds tests for:
+
+- Database-aware health responses
+- Actuator metric exposure
+- Notification-stub validation and idempotent retry handling
+- Booking and cancellation event publication
+- Commit-then-notify behavior when the remote notification endpoint is unreachable
+
 ## Run
 
 Start the application from the project directory:
@@ -107,6 +129,8 @@ http://localhost:8080/
 ```
 
 The embedded Tomcat server listens on port `8080` by default.
+
+The application calls its mock external controller through HTTP at `http://localhost:8080` by default. Override `NOTIFICATION_BASE_URL` when the mock controller is hosted separately.
 
 ## Configuration
 
@@ -139,6 +163,17 @@ PICKLERESERVE_DB_URL=jdbc:sqlite:/absolute/path/picklereserve.db mvn spring-boot
 ```
 
 SQLite foreign-key enforcement, the busy timeout, and WAL journal mode are configured for every application connection.
+
+Notification gateway settings can be overridden with these properties or environment variables:
+
+| Setting | Default | Purpose |
+|---|---|---|
+| `NOTIFICATION_ENABLED` | `true` | Enables remote notification delivery |
+| `NOTIFICATION_BASE_URL` | `http://localhost:8080` | Base URL for the mock external controller |
+| `notification.gateway.connect-timeout` | `500ms` | Maximum TCP connection time |
+| `notification.gateway.read-timeout` | `1s` | Maximum response wait |
+| `notification.gateway.max-attempts` | `3` | Initial attempt plus bounded retries |
+| `notification.gateway.retry-backoff` | `200ms` | Base incremental retry delay |
 
 ## Demo accounts
 
@@ -352,6 +387,75 @@ The database contains exactly these five domain tables:
 5. `appointments`
 
 All persistence uses Spring JDBC and hand-written, parameterized SQL. The project does not use JPA, Hibernate, Spring Data repositories, ORM entities, JPQL, or another database.
+
+## Notification distribution boundary
+
+Booking and cancellation services publish an appointment event while their SQLite transaction is active. `NotificationDispatchService` listens with `TransactionPhase.AFTER_COMMIT` and runs on a dedicated asynchronous executor. A rollback therefore produces no remote call, while a committed booking is never undone by a timeout or notification failure.
+
+The listener loads the committed appointment details through hand-written JDBC SQL and sends one coarse-grained request:
+
+```json
+{
+  "recipient": "player.demo",
+  "type": "BOOKING_CONFIRMED",
+  "message": "Confirmed: Court Rental with Bob Kim on Oct 15, 2026 9:00 AM -07:00."
+}
+```
+
+The Gateway sends a stable key such as `appointment-12-booking_confirmed` with every retry. The mock service stores only the first request for that key, so a lost response and retry do not create duplicate notification work. After the final failure, the fallback increments a metric and writes an ERROR log; the appointment remains committed.
+
+## Health, metrics, and logs
+
+`GET /health` runs `SELECT 1` through `JdbcTemplate`. A successful response is HTTP `200`:
+
+```json
+{"status":"UP","database":"UP","checkedAt":"2026-10-27T22:30:00Z"}
+```
+
+A database failure returns HTTP `503` with both status fields set to `DOWN`.
+
+Actuator exposes metric names at `GET /actuator/metrics`. Important counters include:
+
+- `picklereserve.bookings.committed`
+- `picklereserve.cancellations.committed`
+- `picklereserve.notifications.delivered`
+- `picklereserve.notifications.retry`
+- `picklereserve.notifications.fallback`
+
+Example metric request:
+
+```bash
+curl -s http://localhost:8080/actuator/metrics/picklereserve.bookings.committed
+```
+
+The logging plan avoids passwords and request bodies. INFO records committed appointment events and accepted/delivered notifications. WARN records a transient remote failure before a retry. ERROR records exhausted notification delivery or a failed SQLite health check.
+
+## Docker
+
+Build and run the application with its persistent SQLite volume:
+
+```bash
+docker compose up --build
+```
+
+Verify the container:
+
+```bash
+curl -s http://localhost:8080/health
+curl -s http://localhost:8080/api/home
+```
+
+Stop it without deleting the named database volume:
+
+```bash
+docker compose down
+```
+
+The Compose file intentionally runs one application container because SQLite is an embedded file. The database is stored in the `picklereserve-data` named volume at `/app/data/picklereserve.db`.
+
+## Continuous integration
+
+`.github/workflows/build.yml` checks out the repository, installs Temurin Java 21, enables the Maven dependency cache, and runs `mvn -B -ntp clean verify` on every push and pull request. Surefire reports are uploaded even if a test fails.
 
 ## Code walkthrough
 

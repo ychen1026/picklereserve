@@ -1,0 +1,15 @@
+services:
+  app:
+    build:
+      context: .
+    ports:
+      - "8080:8080"
+    environment:
+      PICKLERESERVE_DB_URL: jdbc:sqlite:/app/data/picklereserve.db
+      NOTIFICATION_BASE_URL: http://localhost:8080
+    volumes:
+      - picklereserve-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  picklereserve-data:

@@ -1,0 +1,8 @@
+.git
+.github
+target
+*.db
+*.db-shm
+*.db-wal
+cookies.txt
+README*.pdf
