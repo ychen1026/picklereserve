@@ -462,3 +462,41 @@ The Compose file intentionally runs one application container because SQLite is 
 - [Milestone 1 Code Walkthrough](https://drive.google.com/file/d/1Y2-yKbf_UhXS4FvupyvaxS4RJLb5fqzu/view?usp=sharing)
 - [Milestone 2 Code Walkthrough](https://drive.google.com/file/d/1jkBewytTw-SWNfrBJBJ4uk2ip1qgbB_o/view?usp=sharing)
 - [Milestone 3 Code Walkthrough](https://drive.google.com/file/d/16Q5Al16HgcAjo2p-4_qSfldPJHj-y6IJ/view?usp=sharing)
+
+## Milestone 4 - Enterprise AI
+
+Milestone 4 adds a Gemini-powered conversational booking agent, an autonomous reminder agent, and grounded FAQ answers. AI components are isolated behind the `ai` Spring profile so the existing application and CI tests still run without an API key.
+
+### AI setup
+
+PowerShell:
+
+```powershell
+$env:GEMINI_API_KEY = "paste-your-Google-AI-Studio-key-here"
+$env:GEMINI_MODEL = "gemini-2.5-flash"
+$env:SPRING_PROFILES_ACTIVE = "ai"
+mvn spring-boot:run
+```
+
+Do not commit the API key. The application reads it from `GEMINI_API_KEY`. The embedding model is configured separately through `GEMINI_EMBEDDING_MODEL` and defaults to `text-embedding-004`.
+
+### Milestone 4 endpoints
+
+| Route | Access | Purpose |
+|---|---|---|
+| `POST /api/ai/chat` | Logged-in player | Conversational tool-calling assistant |
+| `GET /api/ai/faq?question=...` | Authenticated user | Grounded policy and FAQ answer |
+| `POST /api/ai/reminders/run` | Provider/Admin | Manually run the autonomous reminder agent |
+
+Example chat request:
+
+```json
+{
+  "conversationId": "demo-conversation",
+  "message": "Find the earliest open slot and help me book it."
+}
+```
+
+The assistant first presents a booking summary. The user must explicitly confirm before the tool calls the existing transactional `BookingService`. The same guard applies to cancellation. The scheduled reminder job runs according to `AI_REMINDER_CRON` and sends an outbound notification after Gemini creates the reminder text.
+
+The Milestone 4 walkthrough link will be added here after recording.

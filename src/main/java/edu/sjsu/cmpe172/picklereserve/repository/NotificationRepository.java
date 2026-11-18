@@ -19,6 +19,7 @@ public class NotificationRepository {
         var rows = jdbc.query("""
                 SELECT a.id appointment_id,
                        customer.username recipient,
+                       customer.full_name customer_name,
                        s.name service_name,
                        provider_user.full_name provider_name,
                        slot.start_time
@@ -32,9 +33,38 @@ public class NotificationRepository {
                 """, (resultSet, rowNumber) -> new NotificationDetails(
                 resultSet.getLong("appointment_id"),
                 resultSet.getString("recipient"),
+                resultSet.getString("customer_name"),
                 resultSet.getString("service_name"),
                 resultSet.getString("provider_name"),
                 OffsetDateTime.parse(resultSet.getString("start_time"))), appointmentId);
         return rows.stream().findFirst();
+    }
+
+    public java.util.List<NotificationDetails> findUpcoming(int maxResults) {
+        return jdbc.query("""
+                SELECT a.id appointment_id,
+                       customer.username recipient,
+                       customer.full_name customer_name,
+                       s.name service_name,
+                       provider_user.full_name provider_name,
+                       slot.start_time
+                  FROM appointments a
+                  JOIN users customer ON customer.id = a.user_id
+                  JOIN availability_slots slot ON slot.id = a.slot_id
+                  JOIN providers p ON p.id = slot.provider_id
+                  JOIN users provider_user ON provider_user.id = p.user_id
+                  JOIN services s ON s.id = a.service_id
+                 WHERE a.status = 'BOOKED'
+                   AND slot.start_time > strftime('%Y-%m-%dT%H:%M:%S','now')
+                 ORDER BY slot.start_time
+                 LIMIT ?
+                """, (resultSet, rowNumber) -> new NotificationDetails(
+                resultSet.getLong("appointment_id"),
+                resultSet.getString("recipient"),
+                resultSet.getString("customer_name"),
+                resultSet.getString("service_name"),
+                resultSet.getString("provider_name"),
+                OffsetDateTime.parse(resultSet.getString("start_time"))),
+                Math.max(1, maxResults));
     }
 }

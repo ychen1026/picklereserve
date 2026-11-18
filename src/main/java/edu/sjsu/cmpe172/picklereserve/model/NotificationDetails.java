@@ -5,6 +5,7 @@ import java.time.OffsetDateTime;
 public record NotificationDetails(
         long appointmentId,
         String recipient,
+        String customerName,
         String serviceName,
         String providerName,
         OffsetDateTime startsAt) {

@@ -1,0 +1,15 @@
+PickleReserve policy and frequently asked questions
+
+Hours: PickleReserve availability depends on the provider's published slots. A customer can browse open slots by provider, service, or date.
+
+Booking: A customer may book an open slot for the service attached to that slot. A slot cannot be booked twice. A confirmation notification is attempted after the booking transaction commits.
+
+Cancellation: A customer may cancel only their own active booked appointment. Cancellation sends a confirmation notification after the database transaction commits.
+
+Late cancellations: The application records the cancellation, but this demo system does not charge a cancellation fee. A production business could add a configurable fee policy later.
+
+Services: Court Rental is a 60-minute recreational court reservation. Beginner Lesson is a 60-minute private lesson about rules, grip, serving, and scoring. Doubles Strategy is a 90-minute small-group strategy session.
+
+Safety: The AI assistant must ask for confirmation before booking or cancelling. The assistant acts as the authenticated user and cannot bypass role-based access control or the booking transaction.
+
+Notifications: Notifications are sent through the mock external service. A timeout or outage does not undo a committed appointment; the gateway retries and then records a fallback event.
